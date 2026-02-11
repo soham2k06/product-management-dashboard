@@ -4,7 +4,7 @@ import { Product } from "@/types";
 import { ProductTable } from "./product-table";
 import { Button } from "../ui/button";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Select,
@@ -26,7 +26,7 @@ interface ProductListProps {
 }
 
 function ProductList({
-  products,
+  products: serverProducts,
   categories,
   category,
   page,
@@ -37,6 +37,8 @@ function ProductList({
   const router = useRouter();
 
   const { updateQueryParams } = useQueryParams();
+
+  const [products, setProducts] = useState<Product[]>(serverProducts);
 
   const [isPending, startTransition] = useTransition();
   const [paginationDirection, setPaginationDirection] = useState<
@@ -75,6 +77,10 @@ function ProductList({
       updateQueryParams({ page: page + 1 });
     });
   }
+
+  useEffect(() => {
+    setProducts(serverProducts);
+  }, [serverProducts]);
 
   return (
     <>
@@ -117,11 +123,13 @@ function ProductList({
 
       <div className="text-sm text-muted-foreground">
         Showing {products.length === 0 ? 0 : (page - 1) * pageSize + 1} to{" "}
-        {Math.min(page * pageSize, total)} of {total} products
+        {Math.min(page * pageSize, total)} of{" "}
+        {/* Using products state to handle optimistic deletion */}
+        {total - pageSize + products.length} products
       </div>
 
       {/* Table */}
-      <ProductTable products={products} />
+      <ProductTable products={products} setProducts={setProducts} />
 
       {/* Pagination */}
       {totalPages > 1 && (

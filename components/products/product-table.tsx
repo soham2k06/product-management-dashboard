@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import Image from "next/image";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ import ProductTableHeader from "./product-table/product-table-header";
 
 interface ProductTableProps {
   products: Product[];
-  isLoading?: boolean;
+  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
 }
 
 export type SortKey = "price" | "rating" | "stock" | "title";
@@ -33,7 +33,7 @@ export type SortConfig = {
   direction: SortDirection;
 };
 
-export function ProductTable({ products: serverProducts }: ProductTableProps) {
+export function ProductTable({ products, setProducts }: ProductTableProps) {
   const router = useRouter();
   const [density] = useLocalStorage<"comfortable" | "compact">(
     STORAGE_KEYS.DENSITY,
@@ -42,7 +42,6 @@ export function ProductTable({ products: serverProducts }: ProductTableProps) {
 
   const [deleteProductId, setDeleteProductId] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [products, setProducts] = useState<Product[]>(serverProducts);
 
   const allSelected = useMemo(
     () => products.length > 0 && selectedIds.length === products.length,
