@@ -1,6 +1,5 @@
 "use client";
 
-import { useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { QUERY_KEYS } from "@/config/constants";
 import { productService } from "@/services/product.service";
@@ -13,35 +12,9 @@ export const useProducts = (page: number = 1, limit: number = 10) => {
 
   return useQuery({
     queryKey: QUERY_KEYS.PRODUCTS.LIST(page, limit),
-    queryFn: () => productService.getProducts(limit, skip),
+    queryFn: () => productService.getProducts("", limit, skip),
     staleTime: 1000 * 60 * 5, // 5 minutes
     gcTime: 1000 * 60 * 10, // 10 minutes
-  });
-};
-
-export const useProductSearch = (query: string) => {
-  return useQuery({
-    queryKey: QUERY_KEYS.PRODUCTS.SEARCH(query),
-    queryFn: () => productService.searchProducts(query),
-    enabled: query.length > 0,
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 10,
-  });
-};
-
-export const useProductsByCategory = (
-  category: string,
-  page: number = 1,
-  limit: number = 10,
-) => {
-  const skip = (page - 1) * limit;
-
-  return useQuery({
-    queryKey: QUERY_KEYS.PRODUCTS.BY_CATEGORY(category),
-    queryFn: () => productService.getProductsByCategory(category, limit, skip),
-    enabled: category.length > 0,
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 10,
   });
 };
 
