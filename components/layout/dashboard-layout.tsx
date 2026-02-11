@@ -15,7 +15,6 @@ export function DashboardLayout({
   children,
   title,
   search,
-  onSearch,
 }: DashboardLayoutProps) {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
@@ -40,7 +39,7 @@ export function DashboardLayout({
       <AppSidebar />
       <SidebarInset>
         {/* Main content */}
-        <Header title={title} search={search} onSearch={onSearch} />
+        <Header title={title} search={search} />
 
         {/* Page content */}
 

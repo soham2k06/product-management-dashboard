@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { useEffect } from "react";
 
 import { useState } from "react";
 import { Search, LogOut, Settings, User } from "lucide-react";
@@ -19,30 +19,39 @@ import { useAuth } from "@/hooks/use-auth";
 import DarkModeToggle from "./dark-mode-toggle";
 import { SidebarTrigger } from "../ui/sidebar";
 import { Separator } from "../ui/separator";
+import { useQueryParams } from "@/hooks/use-query-params";
 
 export interface HeaderProps {
   title: string;
   search?: string;
-  onSearch?: (query: string) => void;
 }
 
-export function Header({ title, search, onSearch }: HeaderProps) {
+export function Header({ title, search }: HeaderProps) {
+  const { updateQueryParams } = useQueryParams();
+
   const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState(search || "");
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-  };
-
-  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    onSearch?.(searchQuery);
-  };
 
   const userInitials = user
     ? `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase()
     : "?";
+
+  // debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updateQueryParams({
+        search: searchQuery || null,
+        page: null,
+        category: null,
+      });
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    setSearchQuery(search || "");
+  }, [search]);
 
   return (
     <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4 z-10">
@@ -54,19 +63,18 @@ export function Header({ title, search, onSearch }: HeaderProps) {
         <h1 className="text-xl font-semibold text-foreground capitalize">
           {title}
         </h1>
-        <form
-          className="relative ml-auto max-w-xs md:max-w-md"
-          onSubmit={handleSearch}
-        >
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search..."
-            className="pl-10"
-            value={searchQuery}
-            onChange={handleChange}
-          />
-        </form>
+        {(search !== null || search !== undefined) && (
+          <div className="relative ml-auto max-w-xs md:max-w-md">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search..."
+              className="pl-10"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        )}
       </div>
 
       {/* Right side actions */}

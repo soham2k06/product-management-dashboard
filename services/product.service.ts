@@ -10,18 +10,12 @@ import {
 
 export const productService = {
   getProducts: async (
+    search: string,
     limit: number = 10,
     skip: number = 0,
   ): Promise<ProductsListResponse> => {
     const response = await apiClient.get<ProductsListResponse>(
-      `${API_ENDPOINTS.PRODUCTS.LIST}?limit=${limit}&skip=${skip}`,
-    );
-    return response.data;
-  },
-
-  searchProducts: async (query: string): Promise<ProductsListResponse> => {
-    const response = await apiClient.get<ProductsListResponse>(
-      `${API_ENDPOINTS.PRODUCTS.SEARCH}?q=${encodeURIComponent(query)}`,
+      `${search ? API_ENDPOINTS.PRODUCTS.SEARCH : API_ENDPOINTS.PRODUCTS.LIST}?limit=${limit}&skip=${skip}&search=${encodeURIComponent(search)}`,
     );
     return response.data;
   },

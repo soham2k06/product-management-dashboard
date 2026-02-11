@@ -12,14 +12,13 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreVertical, Eye, Edit, Trash2 } from "lucide-react";
+import { MoreVertical, Edit, Trash2 } from "lucide-react";
 import { Product } from "@/types";
 import { cn } from "@/lib/utils";
 import { STORAGE_KEYS } from "@/config/constants";
@@ -33,10 +32,7 @@ interface ProductTableProps {
   isLoading?: boolean;
 }
 
-export function ProductTable({
-  products,
-  isLoading = false,
-}: ProductTableProps) {
+export function ProductTable({ products }: ProductTableProps) {
   const router = useRouter();
 
   const [density] = useLocalStorage<"comfortable" | "compact">(
@@ -79,26 +75,20 @@ export function ProductTable({
     }
   };
 
-  const getStockBadge = (stock: number) => {
-    if (stock === 0) {
-      return <Badge variant="destructive">Out of Stock</Badge>;
-    }
-    if (stock < 10) {
-      return <Badge variant="secondary">Low Stock</Badge>;
-    }
-    return <Badge variant="default">In Stock</Badge>;
-  };
-
   return (
     <div className="overflow-x-auto rounded-lg border border-border">
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow
+            className={cn({
+              "[&>th]:px-4": density === "comfortable",
+              "[&>th]:px-1": density === "compact",
+            })}
+          >
             <TableHead className="w-12 text-center">
               <Checkbox
                 checked={allSelected}
                 onCheckedChange={toggleSelectAll}
-                disabled={isLoading}
               />
             </TableHead>
             <TableHead>Image</TableHead>
@@ -112,15 +102,7 @@ export function ProductTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {isLoading ? (
-            Array.from({ length: 5 }).map((_, i) => (
-              <TableRow key={i}>
-                <TableCell colSpan={9} className="h-12">
-                  <div className="h-4 w-full animate-pulse rounded bg-muted" />
-                </TableCell>
-              </TableRow>
-            ))
-          ) : products.length === 0 ? (
+          {products.length === 0 ? (
             <TableRow>
               <TableCell colSpan={9} className="text-center py-8">
                 <p className="text-muted-foreground">No products found</p>
@@ -156,7 +138,7 @@ export function ProductTable({
                 <TableCell className="max-w-xs truncate">
                   <span className="font-medium">{product.title}</span>
                 </TableCell>
-                <TableCell>{product.brand}</TableCell>
+                <TableCell>{product.brand ?? "-"}</TableCell>
                 <TableCell>{product.category}</TableCell>
                 <TableCell className="text-right">
                   ₹{product.price.toFixed(2)}
