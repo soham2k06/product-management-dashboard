@@ -230,8 +230,8 @@ export function ProductForm({
                   </FormControl>
                   <SelectContent>
                     {categories?.map((cat) => (
-                      <SelectItem key={cat.slug} value={cat.slug}>
-                        {cat.name}
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
                       </SelectItem>
                     ))}
                   </SelectContent>

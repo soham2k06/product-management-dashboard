@@ -5,45 +5,61 @@ import {
   ProductsListResponse,
   CreateProductPayload,
   UpdateProductPayload,
-  Category,
 } from "@/types";
+import { unstable_cache } from "@/lib/unstable_cache";
 
 export const productService = {
-  getProducts: async (
-    search: string,
-    limit: number = 10,
-    skip: number = 0,
-  ): Promise<ProductsListResponse> => {
-    const response = await apiClient.get<ProductsListResponse>(
-      `${search ? API_ENDPOINTS.PRODUCTS.SEARCH : API_ENDPOINTS.PRODUCTS.LIST}?limit=${limit}&skip=${skip}&search=${encodeURIComponent(search)}`,
-    );
-    return response.data;
-  },
+  getProducts: unstable_cache(
+    async (
+      search: string,
+      limit: number = 10,
+      skip: number = 0,
+    ): Promise<ProductsListResponse> => {
+      const response = await apiClient.get<ProductsListResponse>(
+        `${search ? API_ENDPOINTS.PRODUCTS.SEARCH : API_ENDPOINTS.PRODUCTS.LIST}?limit=${limit}&skip=${skip}&search=${encodeURIComponent(search)}`,
+      );
+      return response.data;
+    },
+    ["products"],
+    { revalidate: 60 * 60 }, // Cache for 1 hour
+  ),
 
-  getProductsByCategory: async (
-    category: string,
-    limit: number = 10,
-    skip: number = 0,
-  ): Promise<ProductsListResponse> => {
-    const response = await apiClient.get<ProductsListResponse>(
-      `${API_ENDPOINTS.PRODUCTS.CATEGORY}/${category}?limit=${limit}&skip=${skip}`,
-    );
-    return response.data;
-  },
+  getProductsByCategory: unstable_cache(
+    async (
+      category: string,
+      limit: number = 10,
+      skip: number = 0,
+    ): Promise<ProductsListResponse> => {
+      const response = await apiClient.get<ProductsListResponse>(
+        `${API_ENDPOINTS.PRODUCTS.CATEGORY}/${category}?limit=${limit}&skip=${skip}`,
+      );
+      return response.data;
+    },
+    ["products-by-category"],
+    { revalidate: 60 },
+  ),
 
-  getCategories: async (): Promise<Category[]> => {
-    const response = await apiClient.get<Category[]>(
-      API_ENDPOINTS.PRODUCTS.CATEGORIES,
-    );
-    return response.data;
-  },
+  getCategories: unstable_cache(
+    async (): Promise<string[]> => {
+      const response = await apiClient.get<string[]>(
+        API_ENDPOINTS.PRODUCTS.CATEGORIES,
+      );
+      return response.data;
+    },
+    ["product-categories"],
+    { revalidate: 60 * 60 * 24 }, // Cache for 24 hours
+  ),
 
-  getProduct: async (id: number): Promise<Product> => {
-    const response = await apiClient.get<Product>(
-      `${API_ENDPOINTS.PRODUCTS.DETAIL}/${id}`,
-    );
-    return response.data;
-  },
+  getProduct: unstable_cache(
+    async (id: number): Promise<Product> => {
+      const response = await apiClient.get<Product>(
+        `${API_ENDPOINTS.PRODUCTS.DETAIL}/${id}`,
+      );
+      return response.data;
+    },
+    ["product-detail"],
+    { revalidate: 60 * 60 },
+  ),
 
   createProduct: async (data: CreateProductPayload): Promise<Product> => {
     const response = await apiClient.post<Product>(

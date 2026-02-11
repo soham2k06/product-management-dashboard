@@ -1,6 +1,6 @@
 "use client";
 
-import { Category, Product } from "@/types";
+import { Product } from "@/types";
 import { ProductTable } from "./product-table";
 import { Button } from "../ui/button";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
@@ -17,7 +17,7 @@ import { useQueryParams } from "@/hooks/use-query-params";
 
 interface ProductListProps {
   products: Product[];
-  categories: Category[];
+  categories: string[];
   category: string;
   page: number;
   pageSize: number;
@@ -81,14 +81,14 @@ function ProductList({
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col gap-4 md:flex-row md:items-center">
           <Select value={selectedCategory} onValueChange={handleSelectCategory}>
-            <SelectTrigger className="w-full md:w-48">
+            <SelectTrigger className="w-full md:w-48 [&_span]:capitalize">
               <SelectValue placeholder="Filter by category" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
               {categories.map((cat) => (
-                <SelectItem key={cat.slug} value={cat.slug}>
-                  {cat.name}
+                <SelectItem key={cat} value={cat} className="capitalize">
+                  {cat.replace(/-/g, " ")}
                 </SelectItem>
               ))}
             </SelectContent>

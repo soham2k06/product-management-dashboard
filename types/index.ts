@@ -70,12 +70,6 @@ export interface Product {
   minimumOrderQuantity?: number;
 }
 
-export interface Category {
-  name: string;
-  slug: string;
-  url: string;
-}
-
 export interface Review {
   rating: number;
   comment: string;

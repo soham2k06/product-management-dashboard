@@ -96,7 +96,7 @@ export default function UsersPage() {
   };
 
   return (
-    <DashboardLayout title="Users" search={searchQuery} onSearch={handleSearch}>
+    <DashboardLayout title="Users" search={searchQuery}>
       <div className="space-y-6">
         {/* Toolbar */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

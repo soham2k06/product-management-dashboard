@@ -16,7 +16,7 @@ export const API_ENDPOINTS = {
   PRODUCTS: {
     LIST: "/products",
     SEARCH: "/products/search",
-    CATEGORIES: "/products/categories",
+    CATEGORIES: "/products/category-list",
     CATEGORY: "/products/category",
     DETAIL: "/products",
     ADD: "/products/add",
