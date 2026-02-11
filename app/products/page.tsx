@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { parseAsInteger, useQueryState } from "nuqs";
 import {
   Select,
@@ -11,6 +11,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { ProductTable } from "@/components/products/product-table";
@@ -18,13 +27,14 @@ import {
   useProducts,
   useProductSearch,
   useCategories,
+  useDeleteProduct,
 } from "@/hooks/use-products";
 import { Product } from "@/types";
 import { DEFAULT_PAGE_SIZE, STORAGE_KEYS } from "@/config/constants";
+import ConfirmDelete from "@/components/products/confirm-delete";
 
 export default function ProductsPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const globalPageSize =
     typeof window !== "undefined"
@@ -32,7 +42,7 @@ export default function ProductsPage() {
       : null;
 
   // State from URL
-  const [page, setPage] = useState(Number(searchParams.get("page")) || 1);
+  const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const [searchQuery, setSearchQuery] = useQueryState("search", {
     defaultValue: "",
   });
@@ -53,6 +63,7 @@ export default function ProductsPage() {
     useProductSearch(searchQuery);
   const { data: categories = [], isLoading: categoriesLoading } =
     useCategories();
+  const { mutate: deleteProduct, isPending: isDeleting } = useDeleteProduct();
 
   // Determine which data to display
   const displayData = searchQuery ? searchData : productsData;
@@ -66,24 +77,6 @@ export default function ProductsPage() {
     setSearchQuery(query);
     setPage(1);
   }, []);
-
-  const handleProductAction = (
-    product: Product,
-    action: "view" | "edit" | "delete",
-  ) => {
-    switch (action) {
-      case "view":
-        router.push(`/products/${product.id}`);
-        break;
-      case "edit":
-        router.push(`/products/${product.id}/edit`);
-        break;
-      case "delete":
-        // TODO: Implement delete
-        console.log("Delete:", product.id);
-        break;
-    }
-  };
 
   return (
     <DashboardLayout
@@ -157,13 +150,7 @@ export default function ProductsPage() {
         </div>
 
         {/* Table */}
-        <ProductTable
-          products={products}
-          isLoading={isLoading}
-          onView={(product) => handleProductAction(product, "view")}
-          onEdit={(product) => handleProductAction(product, "edit")}
-          onDelete={(product) => handleProductAction(product, "delete")}
-        />
+        <ProductTable products={products} isLoading={isLoading} />
 
         {/* Pagination */}
         {totalPages > 1 && (

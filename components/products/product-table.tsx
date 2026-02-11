@@ -24,26 +24,28 @@ import { Product } from "@/types";
 import { cn } from "@/lib/utils";
 import { STORAGE_KEYS } from "@/config/constants";
 import { useLocalStorage } from "@/hooks/use-debounce";
+import { useDeleteProduct } from "@/hooks/use-products";
+import ConfirmDelete from "./confirm-delete";
+import { useRouter } from "next/navigation";
 
 interface ProductTableProps {
   products: Product[];
   isLoading?: boolean;
-  onView?: (product: Product) => void;
-  onEdit?: (product: Product) => void;
-  onDelete?: (product: Product) => void;
 }
 
 export function ProductTable({
   products,
   isLoading = false,
-  onView,
-  onEdit,
-  onDelete,
 }: ProductTableProps) {
+  const router = useRouter();
+
   const [density] = useLocalStorage<"comfortable" | "compact">(
     STORAGE_KEYS.DENSITY,
     "comfortable",
   );
+
+  const [deleteProductId, setDeleteProductId] = useState<number | null>(null);
+  const { mutate: deleteProduct, isPending: isDeleting } = useDeleteProduct();
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
@@ -64,6 +66,17 @@ export function ProductTable({
     setSelectedIds((prev) =>
       prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id],
     );
+  };
+
+  const handleProductAction = (product: Product, action: "view" | "edit") => {
+    switch (action) {
+      case "view":
+        router.push(`/products/${product.id}`);
+        break;
+      case "edit":
+        router.push(`/products/${product.id}/edit`);
+        break;
+    }
   };
 
   const getStockBadge = (stock: number) => {
@@ -121,6 +134,7 @@ export function ProductTable({
                   "[&>td]:p-4": density === "comfortable",
                   "[&>td]:p-1": density === "compact",
                 })}
+                onClick={() => handleProductAction(product, "view")}
               >
                 <TableCell className="text-center">
                   <Checkbox
@@ -159,16 +173,20 @@ export function ProductTable({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => onView?.(product)}>
-                        <Eye className="mr-2 h-4 w-4" />
-                        View
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onEdit?.(product)}>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleProductAction(product, "edit");
+                        }}
+                      >
                         <Edit className="mr-2 h-4 w-4" />
                         Edit
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => onDelete?.(product)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteProductId(product.id);
+                        }}
                         className="text-destructive"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
@@ -182,6 +200,24 @@ export function ProductTable({
           )}
         </TableBody>
       </Table>
+
+      <ConfirmDelete
+        open={deleteProductId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteProductId(null);
+        }}
+        productTitle={`#${deleteProductId}`}
+        isDeleting={isDeleting}
+        onConfirm={() => {
+          if (deleteProductId) {
+            deleteProduct(deleteProductId, {
+              onSuccess: () => {
+                setDeleteProductId(null);
+              },
+            });
+          }
+        }}
+      />
     </div>
   );
 }
