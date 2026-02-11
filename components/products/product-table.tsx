@@ -32,6 +32,9 @@ interface ProductTableProps {
   isLoading?: boolean;
 }
 
+type SortKey = "price" | "rating" | "stock" | "title";
+type SortDirection = "asc" | "desc";
+
 export function ProductTable({ products }: ProductTableProps) {
   const router = useRouter();
 
@@ -42,7 +45,6 @@ export function ProductTable({ products }: ProductTableProps) {
 
   const [deleteProductId, setDeleteProductId] = useState<number | null>(null);
   const { mutate: deleteProduct, isPending: isDeleting } = useDeleteProduct();
-
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const allSelected = useMemo(
@@ -51,11 +53,8 @@ export function ProductTable({ products }: ProductTableProps) {
   );
 
   const toggleSelectAll = () => {
-    if (allSelected) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(products.map((p) => p.id));
-    }
+    if (allSelected) setSelectedIds([]);
+    else setSelectedIds(products.map((p) => p.id));
   };
 
   const toggleSelectProduct = (id: number) => {
@@ -65,14 +64,45 @@ export function ProductTable({ products }: ProductTableProps) {
   };
 
   const handleProductAction = (product: Product, action: "view" | "edit") => {
-    switch (action) {
-      case "view":
-        router.push(`/products/${product.id}`);
-        break;
-      case "edit":
-        router.push(`/products/${product.id}/edit`);
-        break;
-    }
+    if (action === "view") router.push(`/products/${product.id}`);
+    else if (action === "edit") router.push(`/products/${product.id}/edit`);
+  };
+
+  // Sorting state
+  const [sortConfig, setSortConfig] = useState<{
+    key: SortKey;
+    direction: SortDirection;
+  } | null>(null);
+
+  const sortedProducts = useMemo(() => {
+    if (!sortConfig) return products;
+
+    const sorted = [...products].sort((a, b) => {
+      const { key, direction } = sortConfig;
+
+      let aVal: number | string = a[key];
+      let bVal: number | string = b[key];
+
+      if (typeof aVal === "string") aVal = aVal.toLowerCase();
+      if (typeof bVal === "string") bVal = bVal.toLowerCase();
+
+      if (aVal < bVal) return direction === "asc" ? -1 : 1;
+      if (aVal > bVal) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+
+    return sorted;
+  }, [products, sortConfig]);
+
+  const handleSort = (key: SortKey) => {
+    setSortConfig((prev) => {
+      if (prev?.key === key) {
+        // toggle direction
+        return { key, direction: prev.direction === "asc" ? "desc" : "asc" };
+      } else {
+        return { key, direction: "asc" };
+      }
+    });
   };
 
   return (
@@ -92,24 +122,64 @@ export function ProductTable({ products }: ProductTableProps) {
               />
             </TableHead>
             <TableHead>Image</TableHead>
-            <TableHead>Title</TableHead>
+            <TableHead
+              onClick={() => handleSort("title")}
+              className="cursor-pointer"
+            >
+              Title{" "}
+              {sortConfig?.key === "title"
+                ? sortConfig.direction === "asc"
+                  ? "↑"
+                  : "↓"
+                : ""}
+            </TableHead>
             <TableHead>Brand</TableHead>
             <TableHead>Category</TableHead>
-            <TableHead className="text-right">Price</TableHead>
-            <TableHead className="text-center">Stock</TableHead>
-            <TableHead className="text-center">Rating</TableHead>
+            <TableHead
+              className="text-right cursor-pointer"
+              onClick={() => handleSort("price")}
+            >
+              Price{" "}
+              {sortConfig?.key === "price"
+                ? sortConfig.direction === "asc"
+                  ? "↑"
+                  : "↓"
+                : ""}
+            </TableHead>
+            <TableHead
+              className="text-center cursor-pointer"
+              onClick={() => handleSort("stock")}
+            >
+              Stock{" "}
+              {sortConfig?.key === "stock"
+                ? sortConfig.direction === "asc"
+                  ? "↑"
+                  : "↓"
+                : ""}
+            </TableHead>
+            <TableHead
+              className="text-center cursor-pointer"
+              onClick={() => handleSort("rating")}
+            >
+              Rating{" "}
+              {sortConfig?.key === "rating"
+                ? sortConfig.direction === "asc"
+                  ? "↑"
+                  : "↓"
+                : ""}
+            </TableHead>
             <TableHead className="text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {products.length === 0 ? (
+          {sortedProducts.length === 0 ? (
             <TableRow>
               <TableCell colSpan={9} className="text-center py-8">
                 <p className="text-muted-foreground">No products found</p>
               </TableCell>
             </TableRow>
           ) : (
-            products.map((product) => (
+            sortedProducts.map((product) => (
               <TableRow
                 key={product.id}
                 className={cn({
@@ -193,9 +263,7 @@ export function ProductTable({ products }: ProductTableProps) {
         onConfirm={() => {
           if (deleteProductId) {
             deleteProduct(deleteProductId, {
-              onSuccess: () => {
-                setDeleteProductId(null);
-              },
+              onSuccess: () => setDeleteProductId(null),
             });
           }
         }}

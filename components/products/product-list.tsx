@@ -121,7 +121,7 @@ function ProductList({
       </div>
 
       {/* Table */}
-      <ProductTable products={products} isLoading={false} />
+      <ProductTable products={products} />
 
       {/* Pagination */}
       {totalPages > 1 && (
