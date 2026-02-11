@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import Image from "next/image";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import { useDeleteProduct } from "@/hooks/use-products";
 import ConfirmDelete from "./confirm-delete";
 import { useRouter } from "next/navigation";
 import ProductTableHeader from "./product-table/product-table-header";
+import { prefetchProduct } from "@/app/products/actions";
 
 interface ProductTableProps {
   products: Product[];
@@ -39,6 +40,8 @@ export function ProductTable({ products, setProducts }: ProductTableProps) {
     STORAGE_KEYS.DENSITY,
     "comfortable",
   );
+
+  const prefetched = useRef(false);
 
   const [deleteProductId, setDeleteProductId] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -64,10 +67,17 @@ export function ProductTable({ products, setProducts }: ProductTableProps) {
     else if (action === "edit") router.push(`/products/${product.id}/edit`);
   };
 
-  useEffect(() => {
-    setProducts(serverProducts);
-    setSelectedIds([]);
-  }, [serverProducts]);
+  const handleMouseEnter = async (id: number) => {
+    if (prefetched.current) return;
+
+    prefetched.current = true;
+
+    // Warm RSC route
+    router.prefetch(`/products/${id}`);
+
+    // Warm server cache
+    prefetchProduct(id);
+  };
 
   // Sorting state
   const [sortConfig, setSortConfig] = useState<{
@@ -174,6 +184,7 @@ export function ProductTable({ products, setProducts }: ProductTableProps) {
                   "[&>td]:p-1": density === "compact",
                 })}
                 onClick={() => handleProductAction(product, "view")}
+                onMouseEnter={() => handleMouseEnter(product.id)}
               >
                 <TableCell className="text-center">
                   <Checkbox

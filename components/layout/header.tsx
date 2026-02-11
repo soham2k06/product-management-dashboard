@@ -20,6 +20,7 @@ import DarkModeToggle from "./dark-mode-toggle";
 import { SidebarTrigger } from "../ui/sidebar";
 import { Separator } from "../ui/separator";
 import { useQueryParams } from "@/hooks/use-query-params";
+import { useSearchParams } from "next/navigation";
 
 export interface HeaderProps {
   title: string;
@@ -30,28 +31,36 @@ export function Header({ title, search }: HeaderProps) {
   const { updateQueryParams } = useQueryParams();
 
   const { user, logout } = useAuth();
-  const [searchQuery, setSearchQuery] = useState(search || "");
+
+  const searchParams = useSearchParams();
+  const searchFromUrl = searchParams.get("search") ?? "";
+
+  const [searchQuery, setSearchQuery] = useState(searchFromUrl);
 
   const userInitials = user
     ? `${user.firstName?.[0] || ""}${user.lastName?.[0] || ""}`.toUpperCase()
     : "?";
 
-  // debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
+      const currentSearchFromUrl = search ?? "";
+
+      // If nothing changed from URL, do nothing
+      if (currentSearchFromUrl === searchQuery) return;
+
       updateQueryParams({
         search: searchQuery || null,
-        page: null,
-        category: null,
+        category: searchQuery ? null : null,
+        page: searchQuery ? 1 : null,
       });
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, search]);
 
   useEffect(() => {
-    setSearchQuery(search || "");
-  }, [search]);
+    setSearchQuery(searchFromUrl);
+  }, [searchFromUrl]);
 
   return (
     <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4 z-10">
@@ -63,7 +72,7 @@ export function Header({ title, search }: HeaderProps) {
         <h1 className="text-xl font-semibold text-foreground capitalize">
           {title}
         </h1>
-        {(search !== null || search !== undefined) && (
+        {searchFromUrl !== null && searchFromUrl !== undefined && (
           <div className="relative ml-auto max-w-xs md:max-w-md">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input

@@ -111,8 +111,6 @@ apiClient.interceptors.response.use(
 
         const { accessToken, refreshToken: newRefreshToken } = response.data;
 
-        console.log({ accessToken, newRefreshToken });
-
         if (typeof window !== "undefined") {
           localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
           localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, newRefreshToken);
