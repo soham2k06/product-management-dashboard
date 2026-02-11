@@ -12,6 +12,9 @@ type ProductsPageProps = {
   }>;
 };
 
+const PAGE_SIZES_TO_PREFETCH = [10, 20, 50];
+const PAGES_TO_PREFETCH = [0, 1, 2];
+
 export default async function ProductsPage(props: ProductsPageProps) {
   const searchParams = await props.searchParams;
 
@@ -22,7 +25,7 @@ export default async function ProductsPage(props: ProductsPageProps) {
 
   const offset = (page - 1) * pageSize;
 
-  // Required data
+  // Required data (priority)
   const [categories, baseData] = await Promise.all([
     productService.getCategories(),
     categoryFilter
@@ -35,38 +38,61 @@ export default async function ProductsPage(props: ProductsPageProps) {
   const totalPages = Math.ceil(total / pageSize);
 
   /*
-    Hybrid Prefetch Strategy
-    - Always prefetch first 3 pages
-    - Prefetch next 2 pages dynamically
+    Prefetch by page size + first 3 pages
+    Non-blocking
   */
 
-  const pagesToPrefetch = new Set<number>();
+  const prefetchTasks: Promise<unknown>[] = [];
 
-  // Always warm first 3
-  [1, 2, 3].forEach((p) => {
-    if (p !== page && p <= totalPages) {
-      pagesToPrefetch.add(p);
+  for (const size of PAGE_SIZES_TO_PREFETCH) {
+    for (const pageIndex of PAGES_TO_PREFETCH) {
+      const skip = pageIndex * size;
+
+      if (categoryFilter) {
+        prefetchTasks.push(
+          productService.getProductsByCategory(categoryFilter, size, skip),
+        );
+      } else {
+        prefetchTasks.push(productService.getProducts(searchQuery, size, skip));
+      }
     }
-  });
+  }
 
-  // Prefetch next 2 dynamically
-  [page + 1, page + 2].forEach((p) => {
-    if (p <= totalPages) {
-      pagesToPrefetch.add(p);
+  /*
+    Prefetch first page of each category
+    Only when not filtering
+  */
+  if (!categoryFilter) {
+    for (const category of categories) {
+      for (const size of PAGE_SIZES_TO_PREFETCH) {
+        prefetchTasks.push(
+          productService.getProductsByCategory(category, size, 0),
+        );
+      }
     }
-  });
+  }
 
-  const prefetchTasks = Array.from(pagesToPrefetch).map((p) => {
-    const nextOffset = (p - 1) * pageSize;
+  /*
+  Prefetch 2 pages ahead (based on current page + pageSize)
+  Non-blocking
+*/
+  for (let i = 1; i <= 2; i++) {
+    const nextPage = page + i;
 
-    return categoryFilter
-      ? productService.getProductsByCategory(
-          categoryFilter,
-          pageSize,
-          nextOffset,
-        )
-      : productService.getProducts(searchQuery, pageSize, nextOffset);
-  });
+    if (nextPage > totalPages) continue;
+
+    const skip = (nextPage - 1) * pageSize;
+
+    if (categoryFilter) {
+      prefetchTasks.push(
+        productService.getProductsByCategory(categoryFilter, pageSize, skip),
+      );
+    } else {
+      prefetchTasks.push(
+        productService.getProducts(searchQuery, pageSize, skip),
+      );
+    }
+  }
 
   void Promise.all(prefetchTasks);
 
