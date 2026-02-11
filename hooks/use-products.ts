@@ -87,7 +87,6 @@ export const useDeleteProduct = () => {
     mutationFn: (id: number) => productService.deleteProduct(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PRODUCTS.ALL });
-      toast.success("Product deleted successfully");
     },
     onError: (error: AxiosError<{ message: string }>) => {
       console.error("Delete product error:", error);

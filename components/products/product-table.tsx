@@ -2,14 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Image from "next/image";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -26,26 +19,30 @@ import { useLocalStorage } from "@/hooks/use-debounce";
 import { useDeleteProduct } from "@/hooks/use-products";
 import ConfirmDelete from "./confirm-delete";
 import { useRouter } from "next/navigation";
+import ProductTableHeader from "./product-table/product-table-header";
 
 interface ProductTableProps {
   products: Product[];
   isLoading?: boolean;
 }
 
-type SortKey = "price" | "rating" | "stock" | "title";
+export type SortKey = "price" | "rating" | "stock" | "title";
 type SortDirection = "asc" | "desc";
+export type SortConfig = {
+  key: SortKey;
+  direction: SortDirection;
+};
 
-export function ProductTable({ products }: ProductTableProps) {
+export function ProductTable({ products: serverProducts }: ProductTableProps) {
   const router = useRouter();
-
   const [density] = useLocalStorage<"comfortable" | "compact">(
     STORAGE_KEYS.DENSITY,
     "comfortable",
   );
 
   const [deleteProductId, setDeleteProductId] = useState<number | null>(null);
-  const { mutate: deleteProduct, isPending: isDeleting } = useDeleteProduct();
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [products, setProducts] = useState<Product[]>(serverProducts);
 
   const allSelected = useMemo(
     () => products.length > 0 && selectedIds.length === products.length,
@@ -79,13 +76,10 @@ export function ProductTable({ products }: ProductTableProps) {
 
     const sorted = [...products].sort((a, b) => {
       const { key, direction } = sortConfig;
-
       let aVal: number | string = a[key];
       let bVal: number | string = b[key];
-
       if (typeof aVal === "string") aVal = aVal.toLowerCase();
       if (typeof bVal === "string") bVal = bVal.toLowerCase();
-
       if (aVal < bVal) return direction === "asc" ? -1 : 1;
       if (aVal > bVal) return direction === "asc" ? 1 : -1;
       return 0;
@@ -97,7 +91,6 @@ export function ProductTable({ products }: ProductTableProps) {
   const handleSort = (key: SortKey) => {
     setSortConfig((prev) => {
       if (prev?.key === key) {
-        // toggle direction
         return { key, direction: prev.direction === "asc" ? "desc" : "asc" };
       } else {
         return { key, direction: "asc" };
@@ -105,72 +98,62 @@ export function ProductTable({ products }: ProductTableProps) {
     });
   };
 
+  // Single delete mutation with optimistic update
+  const { mutate: deleteProductMutate, isPending: isDeleting } =
+    useDeleteProduct();
+
+  const handleDeleteSingle = (id: number) => {
+    const prevProducts = [...products];
+    setProducts(products.filter((p) => p.id !== id));
+    deleteProductMutate(id, {
+      onError: () => {
+        // rollback on error
+        setProducts(prevProducts);
+      },
+      onSuccess: () => {
+        setDeleteProductId(null);
+        setSelectedIds((prev) => prev.filter((pid) => pid !== id));
+      },
+    });
+  };
+
+  // Bulk delete
+  const handleBulkDelete = () => {
+    if (selectedIds.length === 0) return;
+    const prevProducts = [...products];
+    setProducts(products.filter((p) => !selectedIds.includes(p.id)));
+    setSelectedIds([]); // Clear selection immediately
+
+    // Loop through each ID and call mutate
+    selectedIds.forEach((id) => {
+      deleteProductMutate(id, {
+        onError: () => {
+          // rollback if any fail
+          setProducts(prevProducts);
+        },
+      });
+    });
+  };
+
   return (
     <div className="overflow-x-auto rounded-lg border border-border">
+      <div className="fixed bottom-4 right-4 z-50">
+        {selectedIds.length > 0 && (
+          <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
+            Delete Selected ({selectedIds.length})
+          </Button>
+        )}
+      </div>
+
       <Table>
-        <TableHeader>
-          <TableRow
-            className={cn({
-              "[&>th]:px-4": density === "comfortable",
-              "[&>th]:px-1": density === "compact",
-            })}
-          >
-            <TableHead className="w-12 text-center">
-              <Checkbox
-                checked={allSelected}
-                onCheckedChange={toggleSelectAll}
-              />
-            </TableHead>
-            <TableHead>Image</TableHead>
-            <TableHead
-              onClick={() => handleSort("title")}
-              className="cursor-pointer"
-            >
-              Title{" "}
-              {sortConfig?.key === "title"
-                ? sortConfig.direction === "asc"
-                  ? "↑"
-                  : "↓"
-                : ""}
-            </TableHead>
-            <TableHead>Brand</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead
-              className="text-right cursor-pointer"
-              onClick={() => handleSort("price")}
-            >
-              Price{" "}
-              {sortConfig?.key === "price"
-                ? sortConfig.direction === "asc"
-                  ? "↑"
-                  : "↓"
-                : ""}
-            </TableHead>
-            <TableHead
-              className="text-center cursor-pointer"
-              onClick={() => handleSort("stock")}
-            >
-              Stock{" "}
-              {sortConfig?.key === "stock"
-                ? sortConfig.direction === "asc"
-                  ? "↑"
-                  : "↓"
-                : ""}
-            </TableHead>
-            <TableHead
-              className="text-center cursor-pointer"
-              onClick={() => handleSort("rating")}
-            >
-              Rating{" "}
-              {sortConfig?.key === "rating"
-                ? sortConfig.direction === "asc"
-                  ? "↑"
-                  : "↓"
-                : ""}
-            </TableHead>
-            <TableHead className="text-center">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
+        <ProductTableHeader
+          density={density}
+          allSelected={allSelected}
+          toggleSelectAll={toggleSelectAll}
+          sortConfig={sortConfig}
+          handleSort={handleSort}
+        />
+
         <TableBody>
           {sortedProducts.length === 0 ? (
             <TableRow>
@@ -190,6 +173,7 @@ export function ProductTable({ products }: ProductTableProps) {
               >
                 <TableCell className="text-center">
                   <Checkbox
+                    onClick={(e) => e.stopPropagation()}
                     checked={selectedIds.includes(product.id)}
                     onCheckedChange={() => toggleSelectProduct(product.id)}
                   />
@@ -261,11 +245,7 @@ export function ProductTable({ products }: ProductTableProps) {
         productTitle={`#${deleteProductId}`}
         isDeleting={isDeleting}
         onConfirm={() => {
-          if (deleteProductId) {
-            deleteProduct(deleteProductId, {
-              onSuccess: () => setDeleteProductId(null),
-            });
-          }
+          if (deleteProductId) handleDeleteSingle(deleteProductId);
         }}
       />
     </div>
