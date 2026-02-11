@@ -16,7 +16,7 @@ export const productService = {
       skip: number = 0,
     ): Promise<ProductsListResponse> => {
       const response = await apiClient.get<ProductsListResponse>(
-        `${search ? API_ENDPOINTS.PRODUCTS.SEARCH : API_ENDPOINTS.PRODUCTS.LIST}?limit=${limit}&skip=${skip}&search=${encodeURIComponent(search)}`,
+        `${search ? API_ENDPOINTS.PRODUCTS.SEARCH : API_ENDPOINTS.PRODUCTS.LIST}?limit=${limit}&skip=${skip}&q=${encodeURIComponent(search)}`,
       );
       return response.data;
     },
