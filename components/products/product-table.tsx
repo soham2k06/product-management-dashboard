@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Image from "next/image";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -64,6 +64,11 @@ export function ProductTable({ products: serverProducts }: ProductTableProps) {
     if (action === "view") router.push(`/products/${product.id}`);
     else if (action === "edit") router.push(`/products/${product.id}/edit`);
   };
+
+  useEffect(() => {
+    setProducts(serverProducts);
+    setSelectedIds([]);
+  }, [serverProducts]);
 
   // Sorting state
   const [sortConfig, setSortConfig] = useState<{
