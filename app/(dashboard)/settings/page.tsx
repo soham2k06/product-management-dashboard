@@ -17,7 +17,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useLocalStorage } from "@/hooks/use-debounce";
 import { STORAGE_KEYS, DEFAULT_PAGE_SIZE } from "@/config/constants";
@@ -142,90 +141,6 @@ export default function SettingsPage() {
               onCheckedChange={handleSidebarToggle}
             />
           </div>
-        </CardContent>
-      </Card>
-
-      {/* About Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>About</CardTitle>
-          <CardDescription>Product Management Dashboard</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              This is a professional product management dashboard for e-commerce
-              platforms.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="secondary">React 19</Badge>
-              <Badge variant="secondary">Next.js 16</Badge>
-              <Badge variant="secondary">TanStack Query</Badge>
-              <Badge variant="secondary">TypeScript</Badge>
-            </div>
-          </div>
-
-          {/* API Status */}
-          <div className="rounded-lg bg-muted p-3 text-sm">
-            <p className="font-medium">API Configuration</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              API Base URL:{" "}
-              <span className="font-mono">https://dummyjson.com</span>
-            </p>
-          </div>
-
-          {/* Help Text */}
-          <div className="rounded-lg border border-border p-3 text-sm">
-            <p className="font-medium">Test Credentials</p>
-            <p className="mt-1 text-xs text-muted-foreground font-mono">
-              Username: emilys
-            </p>
-            <p className="text-xs text-muted-foreground font-mono">
-              Password: emilyspass
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Development Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Technical Details</CardTitle>
-          <CardDescription>Architecture information</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>
-              <span className="font-medium text-foreground">
-                State Management:
-              </span>{" "}
-              Zustand (Auth) + React Query (Server State)
-            </li>
-            <li>
-              <span className="font-medium text-foreground">Forms:</span> React
-              Hook Form + Zod
-            </li>
-            <li>
-              <span className="font-medium text-foreground">
-                UI Components:
-              </span>{" "}
-              ShadCN UI
-            </li>
-            <li>
-              <span className="font-medium text-foreground">Styling:</span>{" "}
-              Tailwind CSS
-            </li>
-            <li>
-              <span className="font-medium text-foreground">
-                Token Refresh:
-              </span>{" "}
-              Automatic with Axios interceptors
-            </li>
-            <li>
-              <span className="font-medium text-foreground">File Upload:</span>{" "}
-              Cloudinary unsigned uploads
-            </li>
-          </ul>
         </CardContent>
       </Card>
     </div>
