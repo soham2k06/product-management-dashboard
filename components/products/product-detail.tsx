@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Star, ArrowLeft, Edit, Trash2 } from "lucide-react";
+import { Star, ArrowLeft, Edit, Trash2, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +12,13 @@ import { useDeleteProduct } from "@/hooks/use-products";
 import { toast } from "sonner";
 import ConfirmDelete from "@/components/products/confirm-delete";
 import type { Product } from "@/types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import Link from "next/link";
 
 type Props = {
   product: Product;
@@ -19,6 +26,11 @@ type Props = {
 
 export default function ProductDetail({ product }: Props) {
   const router = useRouter();
+
+  const [activeImage, setActiveImage] = useState<string>(
+    product.thumbnail || product.images?.[0] || "/placeholder.svg",
+  );
+
   const deleteProduct = useDeleteProduct();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -51,153 +63,175 @@ export default function ProductDetail({ product }: Props) {
           Back
         </Button>
 
-        {
-          <Card>
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                {/* Images */}
-                <div className="space-y-4">
-                  <div className="relative aspect-square overflow-hidden rounded-lg bg-muted">
-                    <Image
-                      src={product.thumbnail || "/placeholder.svg"}
-                      alt={product.title}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
-                  </div>
-                  {product.images && product.images.length > 0 && (
-                    <div className="grid grid-cols-4 gap-2">
-                      {product.images.slice(0, 4).map((img, idx) => (
-                        <div
-                          key={idx}
-                          className="relative aspect-square overflow-hidden rounded-lg bg-muted"
-                        >
-                          <Image
-                            src={img || "/placeholder.svg"}
-                            alt={`${product.title} ${idx + 1}`}
-                            fill
-                            className="object-cover"
-                            sizes="100px"
-                          />
-                        </div>
-                      ))}
-                    </div>
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-[1fr_2fr]">
+          {/* Images */}
+          <div className="space-y-4">
+            <div className="relative aspect-square overflow-hidden rounded-2xl border bg-muted shadow-sm">
+              <Image
+                src={activeImage}
+                alt={product.title}
+                fill
+                className="object-cover transition-transform duration-300 hover:scale-105"
+                sizes="(max-width: 768px) 100vw, 50vw"
+              />
+            </div>
+
+            {product.images?.length > 0 && (
+              <div className="flex gap-3 overflow-x-auto">
+                {[product.thumbnail, ...product.images]
+                  .filter(Boolean)
+                  .map((img, idx) => {
+                    const isActive = img === activeImage;
+
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => setActiveImage(img!)}
+                        className={`relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border-2 transition ${
+                          isActive
+                            ? "border-primary ring-2 ring-primary/30"
+                            : "border-transparent hover:border-muted-foreground/30"
+                        }`}
+                      >
+                        <Image
+                          src={img!}
+                          alt={`${product.title} ${idx}`}
+                          fill
+                          className="object-cover"
+                          sizes="80px"
+                        />
+                      </button>
+                    );
+                  })}
+              </div>
+            )}
+          </div>
+
+          {/* Details */}
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h1 className="text-3xl font-semibold tracking-tight">
+                    {product.title}
+                  </h1>
+                  <p className="text-sm text-muted-foreground">
+                    {product.brand} • {product.category}
+                  </p>
+                </div>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreHorizontal />
+                    </Button>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link href={`/products/${product.id}/edit`}>
+                        <Edit />
+                        Edit
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => setShowDeleteDialog(true)}
+                      variant="destructive"
+                    >
+                      <Trash2 />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+
+            {/* Price & Rating */}
+            <div className="rounded-2xl border bg-muted/40 p-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-baseline gap-3">
+                  <span className="text-4xl font-bold">
+                    ₹{product.price.toFixed(2)}
+                  </span>
+
+                  {product.discountPercentage > 0 && (
+                    <Badge variant="secondary" className="text-xs">
+                      {product.discountPercentage}% OFF
+                    </Badge>
                   )}
                 </div>
 
-                {/* Details */}
-                <div className="space-y-6">
-                  <div>
-                    <h1 className="text-3xl font-bold text-foreground">
-                      {product.title}
-                    </h1>
-                    <p className="mt-2 text-muted-foreground">
-                      {product.brand}
-                    </p>
-                  </div>
-
-                  {/* Price & Rating */}
-                  <div className="space-y-2">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-bold text-foreground">
-                        ₹{product.price.toFixed(2)}
-                      </span>
-                      {product.discountPercentage > 0 && (
-                        <Badge variant="secondary">
-                          {product.discountPercentage}% OFF
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 ${
-                              i < Math.round(product.rating)
-                                ? "fill-yellow-400 text-yellow-400"
-                                : "text-muted"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-sm text-muted-foreground">
-                        {product.rating.toFixed(1)} out of 5
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Stock */}
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium text-foreground">
-                      Availability
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <Badge variant={getStockStatus(product.stock).variant}>
-                        {getStockStatus(product.stock).label}
-                      </Badge>
-                      <span className="text-sm text-muted-foreground">
-                        {product.stock} in stock
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Info Grid */}
-                  <div className="grid grid-cols-2 gap-4 rounded-lg bg-muted p-4">
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground">
-                        Category
-                      </p>
-                      <p className="font-semibold text-foreground">
-                        {product.category}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground">
-                        Brand
-                      </p>
-                      <p className="font-semibold text-foreground">
-                        {product.brand}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Description */}
-                  <div>
-                    <p className="text-sm font-medium text-foreground mb-2">
-                      Description
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {product.description}
-                    </p>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-2 pt-4">
-                    <Button
-                      onClick={() =>
-                        router.push(`/products/${product.id}/edit`)
-                      }
-                      className="flex-1"
-                    >
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() => setShowDeleteDialog(true)}
-                      className="flex-1"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </Button>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant={getStockStatus(product.stock).variant}>
+                    {getStockStatus(product.stock).label}
+                  </Badge>
+                  <span className="text-sm text-muted-foreground">
+                    {product.stock} units available
+                  </span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        }
+
+              <div className="mt-3 flex items-center gap-2">
+                <div className="flex">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-5 w-5 ${
+                        i < Math.round(product.rating)
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "text-muted"
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <span className="text-sm text-muted-foreground">
+                  {product.rating.toFixed(1)} rating
+                </span>
+              </div>
+            </div>
+
+            {/* Info Grid */}
+            <div className="rounded-2xl border p-5">
+              <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Product Information
+              </h3>
+
+              <div className="grid grid-cols-2 gap-6 text-sm">
+                <div>
+                  <p className="text-muted-foreground">Brand</p>
+                  <p className="font-medium">{product.brand}</p>
+                </div>
+
+                <div>
+                  <p className="text-muted-foreground">Category</p>
+                  <p className="font-medium">{product.category}</p>
+                </div>
+
+                <div>
+                  <p className="text-muted-foreground">Stock</p>
+                  <p className="font-medium">{product.stock}</p>
+                </div>
+
+                <div>
+                  <p className="text-muted-foreground">Discount</p>
+                  <p className="font-medium">{product.discountPercentage}%</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="rounded-2xl border p-5">
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Description
+              </h3>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                {product.description}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Delete Confirmation Dialog */}

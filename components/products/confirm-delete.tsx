@@ -38,7 +38,7 @@ function ConfirmDelete({
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isDeleting}
-            className="bg-destructive hover:bg-destructive/90"
+            variant="destructive"
           >
             {isDeleting ? "Deleting..." : "Delete"}
           </AlertDialogAction>
