@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -28,23 +28,22 @@ import {
 } from "@/lib/validations";
 import { Product } from "@/types";
 import { ImageUpload } from "./image-upload";
-import { useCategories } from "@/hooks/use-products";
+import { useCreateProduct, useUpdateProduct } from "@/hooks/use-products";
+import { useRouter } from "next/navigation";
 
 interface ProductFormProps {
   product?: Product;
-  onSubmit: (data: CreateProductFormData) => Promise<void>;
-  isLoading?: boolean;
-  error?: Error | null;
+  categories: string[];
 }
 
-export function ProductForm({
-  product,
-  onSubmit,
-  isLoading = false,
-  error,
-}: ProductFormProps) {
-  const { data: categories } = useCategories();
-  const [submitError, setSubmitError] = useState<string | null>(null);
+export function ProductForm({ product, categories }: ProductFormProps) {
+  const router = useRouter();
+
+  const createProduct = useCreateProduct();
+  const updateProduct = useUpdateProduct();
+
+  const error = createProduct.error || updateProduct.error;
+  const isLoading = createProduct.isPending || updateProduct.isPending;
 
   const form = useForm<CreateProductFormData>({
     resolver: zodResolver(createProductSchema),
@@ -61,29 +60,23 @@ export function ProductForm({
     },
   });
 
-  const handleSubmit = useCallback(
-    async (data: CreateProductFormData) => {
-      try {
-        setSubmitError(null);
-        await onSubmit(data);
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Failed to save product";
-        setSubmitError(message);
-      }
-    },
-    [onSubmit],
-  );
+  const handleSubmit = (data: CreateProductFormData) => {
+    if (product)
+      updateProduct.mutate(
+        { id: Number(product.id), data },
+        {
+          onSuccess: () => router.push(`/products/${product.id}`),
+        },
+      );
+    else
+      createProduct.mutate(data, {
+        onSuccess: () => router.push("/products/"),
+      });
+  };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {submitError && (
-          <Alert variant="destructive">
-            <AlertDescription>{submitError}</AlertDescription>
-          </Alert>
-        )}
-
         {error && (
           <Alert variant="destructive">
             <AlertDescription>
@@ -224,14 +217,17 @@ export function ProductForm({
                 <FormLabel>Category *</FormLabel>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl>
-                    <SelectTrigger disabled={isLoading}>
+                    <SelectTrigger
+                      disabled={isLoading}
+                      className="[&_span]:capitalize w-full"
+                    >
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
                     {categories?.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
+                      <SelectItem key={cat} value={cat} className="capitalize">
+                        {cat.replace(/-/g, " ")}
                       </SelectItem>
                     ))}
                   </SelectContent>

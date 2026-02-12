@@ -37,42 +37,65 @@ export function ImageUpload({
       if (!files) return;
 
       setError(null);
+
       const filesToUpload = Array.from(files);
+      const totalBytes = filesToUpload.reduce(
+        (acc, file) => acc + file.size,
+        0,
+      );
 
-      for (const file of filesToUpload) {
-        try {
-          setIsUploading(true);
-          setUploadProgress(0);
+      let uploadedBytes = 0;
+      const uploadedUrls: string[] = [];
 
-          const response = await uploadService(file, (progress) => {
-            setUploadProgress(Math.round(progress));
+      try {
+        setIsUploading(true);
+        setUploadProgress(0);
+
+        for (const file of filesToUpload) {
+          await uploadService(file, (fileProgress) => {
+            // fileProgress is percentage of this file
+            const fileUploadedBytes = (fileProgress / 100) * file.size;
+
+            const currentTotal = uploadedBytes + fileUploadedBytes;
+
+            const overallPercent = Math.round(
+              (currentTotal / totalBytes) * 100,
+            );
+
+            setUploadProgress(overallPercent);
+          }).then((response) => {
+            uploadedBytes += file.size;
+            uploadedUrls.push(response.secure_url);
           });
-
-          const newUrl = response.secure_url;
-
-          if (multiple) {
-            onChange([...images, newUrl]);
-          } else {
-            onChange(newUrl);
-          }
-
-          toast.success("Image uploaded successfully");
-        } catch (err) {
-          const message = err instanceof Error ? err.message : "Upload failed";
-          setError(message);
-          toast.error(message);
-        } finally {
-          setIsUploading(false);
-          setUploadProgress(0);
         }
+
+        if (multiple) {
+          const currentImages = Array.isArray(value)
+            ? value
+            : value
+              ? [value]
+              : [];
+
+          onChange([...currentImages, ...uploadedUrls]);
+        } else {
+          onChange(uploadedUrls[0] ?? "");
+        }
+
+        toast.success("Images uploaded successfully");
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "Upload failed";
+        setError(message);
+        toast.error(message);
+      } finally {
+        setIsUploading(false);
+        setUploadProgress(0);
       }
 
-      // Reset input
       if (inputRef.current) {
         inputRef.current.value = "";
       }
     },
-    [multiple, images, onChange],
+    [multiple, value, onChange],
   );
 
   const handleRemoveImage = (index: number) => {

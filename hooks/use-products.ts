@@ -18,25 +18,6 @@ export const useProducts = (page: number = 1, limit: number = 10) => {
   });
 };
 
-export const useCategories = () => {
-  return useQuery({
-    queryKey: QUERY_KEYS.PRODUCTS.CATEGORIES,
-    queryFn: () => productService.getCategories(),
-    staleTime: 1000 * 60 * 30, // 30 minutes
-    gcTime: 1000 * 60 * 60, // 60 minutes
-  });
-};
-
-export const useProduct = (id: number) => {
-  return useQuery({
-    queryKey: QUERY_KEYS.PRODUCTS.DETAIL(id),
-    queryFn: () => productService.getProduct(id),
-    enabled: id > 0,
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 10,
-  });
-};
-
 export const useCreateProduct = () => {
   const queryClient = useQueryClient();
 
