@@ -6,8 +6,6 @@ import { useRouter } from "next/navigation";
 import { Star, ArrowLeft, Edit, Trash2, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { useDeleteProduct } from "@/hooks/use-products";
 import { toast } from "sonner";
 import ConfirmDelete from "@/components/products/confirm-delete";
@@ -55,7 +53,7 @@ export default function ProductDetail({ product }: Props) {
   };
 
   return (
-    <DashboardLayout title={product?.title || "Product Details"}>
+    <>
       <div className="space-y-6">
         {/* Back button */}
         <Button variant="ghost" onClick={() => router.back()} className="mb-4">
@@ -242,6 +240,6 @@ export default function ProductDetail({ product }: Props) {
         isDeleting={deleteProduct.isPending}
         onConfirm={handleDelete}
       />
-    </DashboardLayout>
+    </>
   );
 }

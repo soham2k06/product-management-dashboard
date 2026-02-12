@@ -20,7 +20,7 @@ import { useDeleteProduct } from "@/hooks/use-products";
 import ConfirmDelete from "./confirm-delete";
 import { useRouter } from "next/navigation";
 import ProductTableHeader from "./product-table/product-table-header";
-import { prefetchProduct } from "@/app/products/actions";
+import { prefetchProduct } from "@/app/(dashboard)/products/actions";
 
 interface ProductTableProps {
   products: Product[];

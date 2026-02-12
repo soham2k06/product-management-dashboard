@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import ProductList from "@/components/products/product-list";
 import { DEFAULT_PAGE_SIZE } from "@/config/constants";
 import { productService } from "@/services/product.service";
@@ -97,16 +96,14 @@ export default async function ProductsPage(props: ProductsPageProps) {
   void Promise.all(prefetchTasks);
 
   return (
-    <DashboardLayout title="Products" search>
-      <ProductList
-        products={products}
-        categories={categories}
-        category={categoryFilter}
-        page={page}
-        pageSize={pageSize}
-        total={total}
-        totalPages={totalPages}
-      />
-    </DashboardLayout>
+    <ProductList
+      products={products}
+      categories={categories}
+      category={categoryFilter}
+      page={page}
+      pageSize={pageSize}
+      total={total}
+      totalPages={totalPages}
+    />
   );
 }

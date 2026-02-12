@@ -1,4 +1,3 @@
-import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import UserTable from "@/components/users/user-table";
 import { DEFAULT_PAGE_SIZE } from "@/config/constants";
 import { userService } from "@/services/user.service";
@@ -66,14 +65,12 @@ export default async function UsersPage(props: UsersPageProps) {
   void Promise.all(prefetchTasks);
 
   return (
-    <DashboardLayout title="Users" search>
-      <UserTable
-        users={users}
-        page={page}
-        pageSize={pageSize}
-        total={total}
-        totalPages={totalPages}
-      />
-    </DashboardLayout>
+    <UserTable
+      users={users}
+      page={page}
+      pageSize={pageSize}
+      total={total}
+      totalPages={totalPages}
+    />
   );
 }

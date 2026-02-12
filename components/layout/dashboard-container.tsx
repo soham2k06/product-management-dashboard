@@ -2,20 +2,20 @@
 
 import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Header, type HeaderProps } from "./header";
+import { Header } from "./header";
 import { useAuth } from "@/hooks/use-auth";
 import { SidebarInset, SidebarProvider } from "../ui/sidebar";
 import { AppSidebar } from "../app-sidebar";
 
-interface DashboardLayoutProps extends HeaderProps {
+interface DashboardContainerProps {
   children: ReactNode;
+  sidebarOpen?: boolean;
 }
 
-export function DashboardLayout({
+export function DashboardContainer({
   children,
-  title,
-  search,
-}: DashboardLayoutProps) {
+  sidebarOpen,
+}: DashboardContainerProps) {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
   const [isMounted, setIsMounted] = useState(false);
@@ -31,13 +31,10 @@ export function DashboardLayout({
   }, [isAuthenticated, isLoading, isMounted, router]);
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={sidebarOpen}>
       <AppSidebar />
       <SidebarInset>
-        {/* Main content */}
-        <Header title={title} search={search} />
-
-        {/* Page content */}
+        <Header />
 
         <div className="flex flex-1 flex-col gap-4 p-4">{children}</div>
       </SidebarInset>

@@ -20,13 +20,15 @@ import DarkModeToggle from "./dark-mode-toggle";
 import { SidebarTrigger } from "../ui/sidebar";
 import { Separator } from "../ui/separator";
 import SearchBar from "./searchbar";
+import { usePathname } from "next/navigation";
 
-export interface HeaderProps {
-  title: string;
-  search?: boolean;
-}
+const showSearchRoutes = ["/products", "/users"];
 
-export function Header({ title, search }: HeaderProps) {
+export function Header() {
+  const pathname = usePathname();
+  const title = pathname.split("/").filter(Boolean).slice(-1)[0] || "Dashboard";
+  const showSearch = showSearchRoutes.includes(pathname);
+
   const { user, logout } = useAuth();
 
   const userInitials = user
@@ -43,7 +45,7 @@ export function Header({ title, search }: HeaderProps) {
         <h1 className="text-xl font-semibold text-foreground capitalize">
           {title}
         </h1>
-        {search && (
+        {showSearch && (
           <Suspense fallback={<div>Loading search...</div>}>
             <SearchBar />
           </Suspense>
