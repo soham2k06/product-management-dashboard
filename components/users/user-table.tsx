@@ -28,8 +28,10 @@ import {
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { User } from "@/types";
 import UserDetail from "@/components/users/user-detail";
-import { getUserInitials } from "@/lib/utils";
+import { cn, getUserInitials } from "@/lib/utils";
 import { useQueryParams } from "@/hooks/use-query-params";
+import { STORAGE_KEYS } from "@/config/constants";
+import { useLocalStorage } from "@/hooks/use-debounce";
 
 interface UserTableProps {
   users: User[];
@@ -46,6 +48,11 @@ function UserTable({
   total,
   totalPages,
 }: UserTableProps) {
+  const [density] = useLocalStorage<"comfortable" | "compact">(
+    STORAGE_KEYS.DENSITY,
+    "comfortable",
+  );
+
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
 
@@ -111,7 +118,14 @@ function UserTable({
                 </TableRow>
               ) : (
                 users.map((user) => (
-                  <TableRow key={user.id} onClick={() => handleViewUser(user)}>
+                  <TableRow
+                    key={user.id}
+                    onClick={() => handleViewUser(user)}
+                    className={cn({
+                      "[&>td]:p-4": density === "comfortable",
+                      "[&>td]:p-1": density === "compact",
+                    })}
+                  >
                     <TableCell>
                       <Avatar className="h-8 w-8">
                         <AvatarImage
