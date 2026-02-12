@@ -338,41 +338,12 @@ pnpm format
 - Limited input validation rules
 - Basic loading states (could use skeleton components more)
 
-## Troubleshooting
-
-### Login fails with "Invalid credentials"
-- Check username and password (case-sensitive)
-- Ensure API_BASE_URL is correct
-- Check network tab for actual error response
-
-### Images not uploading
-- Verify Cloudinary credentials in .env.local
-- Check upload preset is set to "Unsigned"
-- Verify file size is under 5MB
-- Check file type (JPG, PNG, WebP only)
-
-### Token refresh not working
-- Check localStorage for tokens (DevTools → Application)
-- Verify token format in Authorization header
-- Check API response for auth endpoints
-
-### Sidebar toggle not persisting
-- Check browser localStorage is enabled
-- Clear localStorage and try again
-- Check browser console for errors
-
-## Support & Questions
-
-For issues or questions:
-1. Check the troubleshooting section above
-2. Review error messages in browser console
-3. Check network tab for API errors
-4. Verify environment variables are set correctly
-
-## License
-
-This project is provided as-is for educational and assessment purposes.
-
----
-
-**Built with ❤️ using modern web technologies**
+## Screenshots
+![Login Form](./screenshots/login.png)
+![Dashboard (dark)](./screenshots/dashboard-dark.png)
+![Dashboard (light)](./screenshots/dashboard-light.png)
+![Products table](./screenshots/products-table.png)
+![Products details](./screenshots/product-details.png)
+![Create products](./screenshots/create-product.png)
+![User details](./screenshots/user-details.png)
+![Settings](./screenshots/settings.png)
