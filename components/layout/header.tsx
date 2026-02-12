@@ -1,11 +1,9 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense } from "react";
 
-import { useState } from "react";
-import { Search, LogOut, Settings, User } from "lucide-react";
+import { LogOut, Settings, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -27,7 +25,36 @@ const showSearchRoutes = ["/products", "/users"];
 
 export function Header() {
   const pathname = usePathname();
-  const title = pathname.split("/").filter(Boolean).slice(-1)[0] || "Dashboard";
+
+  const routeTitles: Record<string, string> = {
+    "/dashboard": "Dashboard",
+    "/products": "Products",
+    "/products/new": "Add Product", // static route first
+    "/products/[id]": "Product Details", // dynamic route last
+  };
+
+  function getTitle(path: string) {
+    if (path === "/") return "Dashboard";
+
+    // Check static routes first
+    if (routeTitles[path]) return routeTitles[path];
+
+    // Check dynamic routes
+    for (const pattern in routeTitles) {
+      if (
+        pattern.includes("[") &&
+        new RegExp(`^${pattern.replace(/\[.*?\]/g, "[^/]+")}$`).test(path)
+      ) {
+        return routeTitles[pattern];
+      }
+    }
+
+    // fallback: last segment
+    return path.split("/").filter(Boolean).slice(-1)[0];
+  }
+
+  const title = getTitle(pathname);
+
   const showSearch = showSearchRoutes.includes(pathname);
 
   const { user, logout } = useAuth();
