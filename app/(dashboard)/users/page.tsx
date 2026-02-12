@@ -22,11 +22,11 @@ export default async function UsersPage(props: UsersPageProps) {
   const offset = (page - 1) * pageSize;
 
   // Required data (priority)
-  const { users, total } = await userService.getUsers(
-    searchQuery,
-    pageSize,
-    offset,
-  );
+  const { users, total } = await userService.getUsers({
+    search: searchQuery,
+    limit: pageSize,
+    skip: offset,
+  });
 
   const totalPages = Math.ceil(total / pageSize);
 
@@ -49,7 +49,9 @@ export default async function UsersPage(props: UsersPageProps) {
 
     const skip = (targetPage - 1) * size;
 
-    prefetchTasks.push(userService.getUsers(searchQuery, size, skip));
+    prefetchTasks.push(
+      userService.getUsers({ search: searchQuery, limit: size, skip }),
+    );
   };
 
   // 1️⃣ Default warm start (first 2 pages for all sizes)

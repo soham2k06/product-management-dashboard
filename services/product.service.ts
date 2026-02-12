@@ -1,23 +1,36 @@
 import apiClient from "@/lib/api-client";
 import { API_ENDPOINTS } from "@/config/constants";
-import {
-  Product,
-  ProductsListResponse,
-  CreateProductPayload,
-  UpdateProductPayload,
-} from "@/types";
+import { Product, ProductsListResponse, CreateProductPayload } from "@/types";
 import { unstable_cache } from "@/lib/unstable_cache";
 
 export const productService = {
   getProducts: unstable_cache(
-    async (
-      search: string,
-      limit: number = 10,
-      skip: number = 0,
-    ): Promise<ProductsListResponse> => {
+    async ({
+      search,
+      limit,
+      skip = 0,
+      select,
+    }: {
+      limit?: number;
+      skip?: number;
+      search?: string;
+      select?: string;
+    }): Promise<ProductsListResponse> => {
+      const baseUrl = search
+        ? API_ENDPOINTS.PRODUCTS.SEARCH
+        : API_ENDPOINTS.PRODUCTS.LIST;
+
+      const params = new URLSearchParams({});
+
+      if (limit) params.append("limit", limit.toString());
+      if (skip) params.append("skip", skip.toString());
+      if (search) params.append("q", search);
+      if (select) params.append("select", select); // e.g. "id,title,price"
+
       const response = await apiClient.get<ProductsListResponse>(
-        `${search ? API_ENDPOINTS.PRODUCTS.SEARCH : API_ENDPOINTS.PRODUCTS.LIST}?limit=${limit}&skip=${skip}&q=${encodeURIComponent(search)}`,
+        `${baseUrl}?${params.toString()}`,
       );
+
       return response.data;
     },
     ["products"],

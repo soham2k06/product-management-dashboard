@@ -29,7 +29,11 @@ export default async function ProductsPage(props: ProductsPageProps) {
     productService.getCategories(),
     categoryFilter
       ? productService.getProductsByCategory(categoryFilter, pageSize, offset)
-      : productService.getProducts(searchQuery, pageSize, offset),
+      : productService.getProducts({
+          search: searchQuery,
+          limit: pageSize,
+          skip: offset,
+        }),
   ]);
 
   const products = baseData.products;
@@ -52,7 +56,13 @@ export default async function ProductsPage(props: ProductsPageProps) {
           productService.getProductsByCategory(categoryFilter, size, skip),
         );
       } else {
-        prefetchTasks.push(productService.getProducts(searchQuery, size, skip));
+        prefetchTasks.push(
+          productService.getProducts({
+            search: searchQuery,
+            limit: size,
+            skip,
+          }),
+        );
       }
     }
   }
@@ -88,7 +98,11 @@ export default async function ProductsPage(props: ProductsPageProps) {
       );
     } else {
       prefetchTasks.push(
-        productService.getProducts(searchQuery, pageSize, skip),
+        productService.getProducts({
+          search: searchQuery,
+          limit: pageSize,
+          skip,
+        }),
       );
     }
   }
