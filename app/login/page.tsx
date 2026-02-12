@@ -1,12 +1,30 @@
-import { LoginForm } from '@/components/auth/login-form';
-import type { Metadata } from 'next';
+import { LoginForm } from "@/components/auth/login-form";
+import { useAuth } from "@/hooks/use-auth";
+import type { Metadata } from "next";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export const metadata: Metadata = {
-  title: 'Login - Product Dashboard',
-  description: 'Sign in to your product management dashboard',
+  title: "Login - Product Dashboard",
+  description: "Sign in to your product management dashboard",
 };
 
 export default function LoginPage() {
+  const router = useRouter();
+
+  const { isAuthenticated, isLoading } = useAuth();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted && !isLoading && isAuthenticated) {
+      router.push("/dashboard");
+    }
+  }, [isAuthenticated, isLoading, isMounted, router]);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
