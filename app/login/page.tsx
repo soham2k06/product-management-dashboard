@@ -6,11 +6,6 @@ import type { Metadata } from "next";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export const metadata: Metadata = {
-  title: "Login - Product Dashboard",
-  description: "Sign in to your product management dashboard",
-};
-
 export default function LoginPage() {
   const router = useRouter();
 
