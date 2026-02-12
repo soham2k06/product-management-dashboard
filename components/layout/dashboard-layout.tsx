@@ -30,10 +30,6 @@ export function DashboardLayout({
     }
   }, [isAuthenticated, isLoading, isMounted, router]);
 
-  if (!isMounted || isLoading || !isAuthenticated) {
-    return null;
-  }
-
   return (
     <SidebarProvider>
       <AppSidebar />

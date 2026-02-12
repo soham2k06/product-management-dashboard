@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Loading() {
   return (
-    <DashboardLayout title="Users">
+    <DashboardLayout title="Users" search>
       <Skeleton className="h-5 w-1/2" />
 
       <TableSkeleton />

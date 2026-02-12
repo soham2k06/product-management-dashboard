@@ -7,7 +7,7 @@ import Link from "next/link";
 
 export default function Loading() {
   return (
-    <DashboardLayout title="Products">
+    <DashboardLayout title="Products" search>
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex flex-col gap-4 md:flex-row md:items-center">
           <Skeleton className="h-8 w-full md:w-48" />

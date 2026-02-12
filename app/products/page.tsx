@@ -97,7 +97,7 @@ export default async function ProductsPage(props: ProductsPageProps) {
   void Promise.all(prefetchTasks);
 
   return (
-    <DashboardLayout title="Products" search={searchQuery}>
+    <DashboardLayout title="Products" search>
       <ProductList
         products={products}
         categories={categories}

@@ -66,7 +66,7 @@ export default async function UsersPage(props: UsersPageProps) {
   void Promise.all(prefetchTasks);
 
   return (
-    <DashboardLayout title="Users" search={searchQuery}>
+    <DashboardLayout title="Users" search>
       <UserTable
         users={users}
         page={page}
